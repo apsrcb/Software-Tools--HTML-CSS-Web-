@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RB's Multi Pocket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            color: #337ab7;
+        }
+
+        #uploadContainer {
+            position: relative;
+            width: 300px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        #uploadHeader {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #mediaContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .mediaItem {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .mediaItem:hover {
+            transform: scale(1.05);
+        }
+
+        .mediaItem img,
+        .mediaItem video,
+        .mediaItem audio {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mediaItemHeading {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .clearInputBtn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .clearInputBtn:hover {
+            background-color: #ffdddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>RB's Multi Pocket</h1>
+    <div id="uploadContainer">
+        <div id="uploadHeader">Upload Your Multimedia</div>
+        <input type="file" id="uploadFile" accept="image/*, video/*, audio/*, .pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .gif">
+    </div>
+    <div id="mediaContainer"></div>
+
+    <script>
+        document.getElementById('uploadFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const mediaSrc = reader.result;
+                    const heading = prompt('Enter heading for this input:');
+                    addMediaToContainer(mediaSrc, file.type, heading);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function addMediaToContainer(mediaSrc, fileType, heading) {
+            const mediaContainer = document.getElementById('mediaContainer');
+            const mediaItem = document.createElement('div');
+            mediaItem.classList.add('mediaItem');
+
+            if (fileType.startsWith('image')) {
+                const imageElement = document.createElement('img');
+                imageElement.src = mediaSrc;
+                mediaItem.appendChild(imageElement);
+            } else if (fileType.startsWith('video')) {
+                const videoElement = document.createElement('video');
+                videoElement.controls = true;
+                const sourceElement = document.createElement('source');
+                sourceElement.src = mediaSrc;
+                videoElement.appendChild(sourceElement);
+                mediaItem.appendChild(videoElement);
+            } else if (fileType.startsWith('audio')) {
+                const audioElement = document.createElement('audio');
+                audioElement.controls = true;
+                const sourceElement = document.createElement('source');
+                sourceElement.src = mediaSrc;
+                audioElement.appendChild(sourceElement);
+                mediaItem.appendChild(audioElement);
+            } else {
+                const linkElement = document.createElement('a');
+                linkElement.href = mediaSrc;
+                linkElement.innerText = 'Download';
+                mediaItem.appendChild(linkElement);
+            }
+
+            if (heading) {
+                const headingElement = document.createElement('div');
+                headingElement.classList.add('mediaItemHeading');
+                headingElement.innerText = heading;
+                mediaItem.appendChild(headingElement);
+            }
+
+            const clearInputBtn = document.createElement('div');
+            clearInputBtn.classList.add('clearInputBtn');
+            clearInputBtn.innerText = '✕';
+            clearInputBtn.addEventListener('click', function() {
+                mediaItem.remove();
+            });
+            mediaItem.appendChild(clearInputBtn);
+
+            mediaContainer.appendChild(mediaItem);
+        }
+    </script>
+</body>
+</html>
