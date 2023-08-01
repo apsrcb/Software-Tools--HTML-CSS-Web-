@@ -1,6 +1,9 @@
 # RB's Notepad
 
-![RB's Notepad](https://em-content.zobj.net/source/animated-noto-color-emoji/356/relieved-face_1f60c.gif)
+<div style="display: flex; align-items: center;">
+  <img src="https://em-content.zobj.net/source/animated-noto-color-emoji/356/relieved-face_1f60c.gif" alt="Relieved Face" style="max-width: 50px; height: auto; margin-right: 10px;">
+  <span style="font-size: 24px; font-weight: bold;">RB's Notepad</span>
+</div>
 
 RB's Notepad is a simple web-based notepad application that allows users to write, save, load, and print notes within their web browser. It provides basic text formatting options like bold, italic, and underline. The application also displays word and character counts to help users track their writing progress.
 
