@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RB's Notepad</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif; /* Changed the font to Segoe UI */
+      background-color: #f0f0f0;
+    }
+
+    .header {
+      background-color: #FFB6C1; /* Light pink background color */
+      padding: 20px;
+      text-align: center;
+      color: white;
+    }
+
+    .header img {
+      max-width: 100px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    .header h1 {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 400px; /* Increase the height of the typing screen */
+      resize: none;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 16px;
+      line-height: 1.5;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: flex-end;
+    }
+  </style>
+</head>
+<body>
+    <div class="header">
+      <img src="https://em-content.zobj.net/source/animated-noto-color-emoji/356/relieved-face_1f60c.gif" alt="Relieved Face" />
+      <h1>RB's Notepad</h1>
+    </div>
+    <div class="container">
+      <textarea id="notepad" placeholder="Start typing..."></textarea>
+      <div class="button-group">
+        <button id="save-btn">Save</button>
+        <button id="load-btn">Load</button>
+        <button id="clear-btn">Clear</button>
+        <button id="print-btn">Print</button>
+      </div>
+      <div class="status-bar">
+        Word Count: <span id="word-count">0</span> | Character Count: <span id="char-count">0</span>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+  </html>
