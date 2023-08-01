@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RB's Pocket - Bookmarking Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .bookmark-form {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .bookmark-form input {
+      padding: 8px;
+      margin-right: 10px;
+      width: 200px;
+    }
+
+    .bookmark-form button {
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .bookmark-form .clear-button {
+      background-color: #dc3545;
+      margin-left: 10px;
+    }
+
+    .bookmark-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .bookmark-item {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .bookmark-heading {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .bookmark-notes {
+      margin-bottom: 5px;
+    }
+
+    .bookmark-url {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .edit-button {
+      background-color: #28a745;
+      margin-left: 10px;
+    }
+
+    .cross-icon {
+      cursor: pointer;
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      font-size: 14px;
+      color: #dc3545;
+    }
+
+    .collection-item {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .dragged-over {
+      border: 2px dashed #007bff;
+    }
+
+    .bookmark-tags {
+      margin-bottom: 5px;
+    }
+
+    #searchInput {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 20px;
+    }
+
+    .favicon {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>RB's Pocket</h1>
+      <input type="text" id="searchInput" placeholder="Search Bookmarks" oninput="searchBookmarks()">
+    </div>
+
+    <div class="bookmark-form">
+      <input type="text" id="urlInput" placeholder="Enter URL">
+      <input type="text" id="headingInput" placeholder="Enter Heading (optional)">
+      <input type="text" id="notesInput" placeholder="Add Notes or Description">
+      <input type="text" id="tagsInput" placeholder="Add Tags (comma-separated)">
+      <input type="text" id="collectionInput" placeholder="Enter Collection Name (optional)">
+      <button onclick="addBookmark()">Add Bookmark</button>
+      <button class="clear-button" onclick="clearBookmarks()">Clear Bookmarks</button>
+    </div>
+
+    <ul class="bookmark-list" id="bookmarkList" ondragover="allowDrop(event)" ondrop="drop(event)"></ul>
+  </div>
+
+  <script>
+    const bookmarkList = document.getElementById('bookmarkList');
+    const urlInput = document.getElementById('urlInput');
+    const headingInput = document.getElementById('headingInput');
+    const notesInput = document.getElementById('notesInput');
+    const tagsInput = document.getElementById('tagsInput');
+    const collectionInput = document.getElementById('collectionInput');
+    const searchInput = document.getElementById('searchInput');
+    let collections = [];
+
+    window.onload = function () {
+      const savedCollections = JSON.parse(localStorage.getItem('collections')) || [];
+      collections = savedCollections;
+      updateBookmarkList();
+    };
+
+    function addFaviconToBookmark(url, bookmarkBox) {
+      const img = new Image();
+      img.onload = function () {
+        const favicon = document.createElement('img');
+        favicon.src = img.src;
+        favicon.classList.add('favicon');
+        bookmarkBox.insertBefore(favicon, bookmarkBox.firstChild);
+      };
+      img.onerror = function () {
+        console.log(`Failed to load favicon for ${url}`);
+      };
+      img.src = `https://www.google.com/s2/favicons?domain=${url}`;
+    }
+
+    function addBookmarkToList(url, heading, notes, tags, collection) {
+      const listItem = document.createElement('li');
+      listItem.setAttribute('data-url', url);
+      const bookmarkBox = document.createElement('div');
+      bookmarkBox.classList.add('bookmark-item');
+
+      if (heading && heading.trim() !== '') {
+        const bookmarkHeading = document.createElement('div');
+        bookmarkHeading.classList.add('bookmark-heading');
+        bookmarkHeading.textContent = heading;
+        bookmarkBox.appendChild(bookmarkHeading);
+      }
+
+      if (notes && notes.trim() !== '') {
+        const bookmarkNotes = document.createElement('div');
+        bookmarkNotes.classList.add('bookmark-notes');
+        bookmarkNotes.textContent = notes;
+        bookmarkBox.appendChild(bookmarkNotes);
+      }
+
+      if (tags && tags.trim() !== '') {
+        const bookmarkTags = document.createElement('div');
+        bookmarkTags.classList.add('bookmark-tags');
+        bookmarkTags.textContent = tags;
+        bookmarkBox.appendChild(bookmarkTags);
+      }
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.textContent = url;
+      link.classList.add('bookmark-url');
+      link.target = '_blank';
+      bookmarkBox.appendChild(link);
+      listItem.appendChild(bookmarkBox);
+      bookmarkList.appendChild(listItem);
+
+      const crossIcon = document.createElement('i');
+      crossIcon.classList.add('fas', 'fa-times', 'cross-icon');
+      crossIcon.addEventListener('click', () => removeBookmark(url, collection));
+      bookmarkBox.appendChild(crossIcon);
+
+      const editButton = document.createElement('button');
+      editButton.textContent = 'Edit';
+      editButton.classList.add('edit-button');
+      editButton.addEventListener('click', () =>
+        showEditBookmarkForm(url, heading, notes, tags, collection)
+      );
+      bookmarkBox.appendChild(editButton);
+
+      addFaviconToBookmark(url, bookmarkBox);
+    }
+
+    function addBookmark() {
+      const url = urlInput.value.trim();
+      const heading = headingInput.value.trim();
+      const notes = notesInput.value.trim();
+      const tags = tagsInput.value.trim();
+      const collection = collectionInput.value.trim();
+      if (url !== '') {
+        let targetCollection = collections.find((col) => col.name === collection);
+        if (!targetCollection) {
+          targetCollection = { name: collection, bookmarks: [] };
+          collections.push(targetCollection);
+        }
+        targetCollection.bookmarks.push({ url, heading, notes, tags });
+        updateBookmarkList();
+
+        urlInput.value = '';
+        headingInput.value = '';
+        notesInput.value = '';
+        tagsInput.value = '';
+        collectionInput.value = '';
+
+        localStorage.setItem('collections', JSON.stringify(collections));
+      }
+    }
+
+    function removeBookmark(url, collection) {
+      const targetCollection = collections.find((col) => col.name === collection);
+      if (targetCollection) {
+        targetCollection.bookmarks = targetCollection.bookmarks.filter(
+          (bookmark) => bookmark.url !== url
+        );
+        updateBookmarkList();
+        localStorage.setItem('collections', JSON.stringify(collections));
+      }
+    }
+
+    function showEditBookmarkForm(url, heading, notes, tags, collection) {
+      urlInput.value = url;
+      headingInput.value = heading || '';
+      notesInput.value = notes || '';
+      tagsInput.value = tags || '';
+      collectionInput.value = collection || '';
+    }
+
+    function dragStart(e, url) {
+      draggedBookmarkUrl = url;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', url);
+    }
+
+    function allowDrop(e) {
+      e.preventDefault();
+      const draggedOverElement = e.target.closest('.bookmark-item');
+      const bookmarkList = document.getElementById('bookmarkList');
+      bookmarkList.childNodes.forEach((item) => {
+        if (item === draggedOverElement) {
+          item.classList.add('dragged-over');
+        } else {
+          item.classList.remove('dragged-over');
+        }
+      });
+    }
+
+    function drop(e) {
+      e.preventDefault();
+      const data = e.dataTransfer.getData('text/plain');
+      const draggedOverElement = e.target.closest('.bookmark-item');
+      const bookmarkList = document.getElementById('bookmarkList');
+
+      bookmarkList.childNodes.forEach((item) => {
+        item.classList.remove('dragged-over');
+      });
+
+      const bookmarks = [];
+      let dropped = false;
+      bookmarkList.childNodes.forEach((item) => {
+        if (item.classList.contains('bookmark-item')) {
+          if (item === draggedOverElement && !dropped) {
+            const bookmark = findBookmarkByURL(data);
+            if (bookmark) {
+              bookmarks.push(bookmark);
+              dropped = true;
+            }
+          }
+          if (item.getAttribute('data-url') !== data) {
+            const bookmark = findBookmarkByURL(item.getAttribute('data-url'));
+            if (bookmark) {
+              bookmarks.push(bookmark);
+            }
+          }
+        }
+      });
+
+      localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+      updateBookmarkList();
+    }
+
+    function findBookmarkByURL(url) {
+      const savedBookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+      return savedBookmarks.find((bookmark) => bookmark.url === url);
+    }
+
+    function searchBookmarks() {
+      const searchQuery = searchInput.value.trim().toLowerCase();
+      if (searchQuery === '') {
+        updateBookmarkList();
+        return;
+      }
+
+      const filteredCollections = collections.map((collection) => ({
+        ...collection,
+        bookmarks: collection.bookmarks.filter(
+          (bookmark) =>
+            bookmark.url.toLowerCase().includes(searchQuery) ||
+            (bookmark.heading && bookmark.heading.toLowerCase().includes(searchQuery)) ||
+            (bookmark.notes && bookmark.notes.toLowerCase().includes(searchQuery)) ||
+            (bookmark.tags && bookmark.tags.toLowerCase().includes(searchQuery))
+        ),
+      }));
+
+      bookmarkList.innerHTML = '';
+      filteredCollections.forEach((collection) => {
+        if (collection.bookmarks.length > 0) {
+          const collectionHeading = document.createElement('div');
+          collectionHeading.classList.add('collection-item');
+          collectionHeading.textContent = collection.name;
+          bookmarkList.appendChild(collectionHeading);
+          collection.bookmarks.forEach((bookmark) => {
+            addBookmarkToList(
+              bookmark.url,
+              bookmark.heading,
+              bookmark.notes,
+              bookmark.tags,
+              collection.name
+            );
+          });
+        }
+      });
+    }
+
+    function updateBookmarkList() {
+      bookmarkList.innerHTML = '';
+      collections.forEach((collection) => {
+        if (collection.bookmarks.length > 0) {
+          const collectionHeading = document.createElement('div');
+          collectionHeading.classList.add('collection-item');
+          collectionHeading.textContent = collection.name;
+          bookmarkList.appendChild(collectionHeading);
+          collection.bookmarks.forEach((bookmark) => {
+            addBookmarkToList(
+              bookmark.url,
+              bookmark.heading,
+              bookmark.notes,
+              bookmark.tags,
+              collection.name
+            );
+          });
+        }
+      });
+    }
+
+    function clearBookmarks() {
+      collections = [];
+      localStorage.removeItem('collections');
+      updateBookmarkList();
+    }
+
+    // Initialize the bookmark list on page load
+    window.onload = function () {
+      const savedCollections = JSON.parse(localStorage.getItem('collections')) || [];
+      collections = savedCollections;
+      updateBookmarkList();
+    };
+  </script>
+</body>
+</html>
